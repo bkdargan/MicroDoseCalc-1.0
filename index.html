@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bryant's Dose Strength Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            display: flex;
+            gap: 40px;
+        }
+        .container {
+            max-width: 400px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+        #result {
+            margin-top: 25px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #chart {
+            border-left: 3px solid #ccc;
+            padding-left: 20px;
+            max-width: 300px;
+        }
+        #chart h3 {
+            margin-top: 0;
+        }
+        .entry {
+            background: #f7f7f7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .increase { color: green; }
+        .decrease { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dose Strength Calculator</h2>
+
+    <label>Original Strength (mg or mL):</label>
+    <input type="number" id="origStrength" step="0.01">
+
+    <label>Original Liquid Amount (L, mL, oz — any unit):</label>
+    <input type="number" id="origVolume" step="0.01">
+
+    <label>New Strength (mg or mL):</label>
+    <input type="number" id="newStrength" step="0.01">
+
+    <button onclick="calculate()">Calculate</button>
+    <button onclick="clearAll()" style="background:#c62828;color:white;">Clear All</button>
+
+    <div id="result"></div>
+</div>
+
+<div id="chart">
+    <h3>Calculation Recap</h3>
+    <div id="chartEntries"></div>
+</div>
+
+<script>
+function calculate() {
+    let D1 = parseFloat(document.getElementById("origStrength").value);
+    let V1 = parseFloat(document.getElementById("origVolume").value);
+    let D2 = parseFloat(document.getElementById("newStrength").value);
+
+    if (isNaN(D1) || isNaN(V1) || isNaN(D2) || D1 <= 0 || V1 <= 0 || D2 <= 0) {
+        document.getElementById("result").innerHTML = "Please enter valid positive numbers.";
+        return;
+    }
+
+    // Inverse proportion formula
+    let V2 = V1 * (D1 / D2);
+    let formatted = V2.toFixed(4);
+
+    // Percent change in strength
+    let strengthChange = ((D2 - D1) / D1) * 100;
+    let strengthClass = strengthChange >= 0 ? "increase" : "decrease";
+    let strengthSymbol = strengthChange >= 0 ? "▲" : "▼";
+
+    // Percent change in liquid amount
+    let liquidChange = ((V2 - V1) / V1) * 100;
+    let liquidClass = liquidChange >= 0 ? "increase" : "decrease";
+    let liquidSymbol = liquidChange >= 0 ? "▲" : "▼";
+
+    // Build result output
+    let output = `
+        New Liquid Amount: ${formatted}<br>
+        <span class="${strengthClass}">${strengthSymbol} Strength Change: ${Math.abs(strengthChange).toFixed(2)}%</span><br>
+        <span class="${liquidClass}">${liquidSymbol} Liquid Change: ${Math.abs(liquidChange).toFixed(2)}%</span>
+    `;
+
+    document.getElementById("result").innerHTML = output;
+
+    // Add recap entry
+    let entry = document.createElement("div");
+    entry.className = "entry";
+    entry.innerHTML =
+        "<strong>Original Strength:</strong> " + D1 +
+        "<br><strong>Original Liquid:</strong> " + V1 +
+        "<br><strong>New Strength:</strong> " + D2 +
+        "<br><strong>New Liquid:</strong> " + formatted +
+        "<br><strong>Strength Change:</strong> " + strengthSymbol + " " + Math.abs(strengthChange).toFixed(2) + "%" +
+        "<br><strong>Liquid Change:</strong> " + liquidSymbol + " " + Math.abs(liquidChange).toFixed(2) + "%";
+
+    document.getElementById("chartEntries").prepend(entry);
+}
+
+function clearAll() {
+    document.getElementById("origStrength").value = "";
+    document.getElementById("origVolume").value = "";
+    document.getElementById("newStrength").value = "";
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("chartEntries").innerHTML = "";
+}
+</script>
+
+</body>
+</html>
