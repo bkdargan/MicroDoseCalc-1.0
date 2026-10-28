@@ -182,6 +182,20 @@
         #continueBtn { width: 100%; margin-top: 14px; background: var(--blue); color: #fff; }
         #continueBtn:disabled { cursor: not-allowed; opacity: .45; transform: none; }
         body.modal-open { overflow: hidden; }
+
+        .site-footer {
+            max-width: 1100px;
+            margin: 24px auto 0;
+            padding: 20px 12px 8px;
+            text-align: center;
+            color: #64748b;
+            font-size: .86rem;
+            line-height: 1.6;
+            border-top: 1px solid #dbe3ef;
+        }
+        .site-footer p { margin: 4px 0; }
+        .site-footer .copyright { color: #16324f; font-weight: 700; }
+
         @media (max-width: 760px) {
             body { padding: 22px 13px; }
             .layout { grid-template-columns: 1fr; }
@@ -395,6 +409,12 @@ function clearAll() {
     document.getElementById("chartEntries").innerHTML = "";
 }
 </script>
+
+
+<footer class="site-footer">
+    <p class="copyright">© 2026 Bryant Dargan. All Rights Reserved.</p>
+    <p>Bryant's Dose Strength Calculator is provided for educational and reference purposes only.</p>
+</footer>
 
 </body>
 </html>
