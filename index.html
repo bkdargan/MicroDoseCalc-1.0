@@ -2,82 +2,336 @@
 <html>
 <head>
     <title>Bryant's Dose Strength Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        :root {
+            --navy: #16324f;
+            --blue: #2463eb;
+            --blue-dark: #194fc4;
+            --ink: #172033;
+            --muted: #64748b;
+            --line: #dbe3ef;
+            --panel: #ffffff;
+            --page: #f3f6fb;
+            --green: #16804a;
+            --red: #c62828;
+        }
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            display: flex;
-            gap: 40px;
+            margin: 0;
+            padding: 32px 20px;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+            background: var(--page);
+            line-height: 1.5;
         }
-        .container {
-            max-width: 400px;
+        .page-header {
+            max-width: 1100px;
+            margin: 0 auto 24px;
         }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 15px;
+        .eyebrow {
+            color: var(--blue);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin: 0 0 6px;
         }
-        input {
+        .page-header h1 { margin: 0; color: var(--navy); font-size: clamp(1.7rem, 4vw, 2.35rem); }
+        .page-header p { margin: 8px 0 0; color: var(--muted); max-width: 720px; }
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+            gap: 22px;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: start;
+        }
+        .container, #chart, .about-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(22, 50, 79, .06);
+            min-width: 0;
+        }
+        .container h2, #chart h3, .about-card h3 { color: var(--navy); margin-top: 0; }
+        .section-intro { color: var(--muted); margin-top: -8px; }
+        label { display: block; font-weight: 700; margin: 18px 0 6px; font-size: .94rem; }
+        input[type="number"] {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
+            padding: 12px 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font: inherit;
+            background: #fff;
+            color: var(--ink);
         }
+        input[type="number"]:focus, input[type="checkbox"]:focus-visible, button:focus-visible {
+            outline: 3px solid rgba(36, 99, 235, .25);
+            outline-offset: 2px;
+            border-color: var(--blue);
+        }
+        .button-row { display: flex; gap: 10px; margin-top: 22px; }
         button {
-            margin-top: 20px;
-            padding: 10px;
-            width: 100%;
-            font-size: 16px;
+            border: 0;
+            border-radius: 9px;
+            padding: 12px 16px;
+            font: inherit;
+            font-weight: 750;
+            cursor: pointer;
+            transition: background .15s ease, transform .15s ease;
         }
+        button:hover { transform: translateY(-1px); }
+        .primary-btn { background: var(--blue); color: #fff; flex: 1; }
+        .primary-btn:hover { background: var(--blue-dark); }
+        .secondary-btn { background: #fee2e2; color: #991b1b; }
         #result {
-            margin-top: 25px;
-            font-size: 20px;
-            font-weight: bold;
+            margin-top: 22px;
+            padding: 16px;
+            border-radius: 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            font-size: 1rem;
+            font-weight: 650;
+            overflow-wrap: anywhere;
         }
-        #chart {
-            border-left: 3px solid #ccc;
-            padding-left: 20px;
-            max-width: 300px;
-        }
-        #chart h3 {
-            margin-top: 0;
-        }
+        #result:empty { display: none; }
+        .increase { color: var(--green); }
+        .decrease { color: var(--red); }
+        #chart { border-left: 1px solid var(--line); }
+        #chart h3 { margin-bottom: 6px; }
+        .history-intro { margin: 0 0 18px; color: var(--muted); font-size: .92rem; }
         .entry {
-            background: #f7f7f7;
-            padding: 10px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            padding: 13px;
             margin-bottom: 10px;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: .9rem;
+            overflow-wrap: anywhere;
         }
-        .increase { color: green; }
-        .decrease { color: red; }
+        .entry strong { color: var(--navy); }
+        .about-card { max-width: 1100px; margin: 22px auto 0; }
+        .about-card p, .about-card li { color: #475569; }
+        .formula {
+            background: #eff6ff;
+            color: var(--navy);
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 14px;
+            font-weight: 750;
+            text-align: center;
+        }
+        .safety-note {
+            border-left: 4px solid #e0a126;
+            background: #fffbeb;
+            padding: 13px 15px;
+            border-radius: 7px;
+            color: #78350f;
+        }
+        /* Welcome overlay */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(10, 24, 43, .72);
+            overflow-y: auto;
+        }
+        .modal[hidden] { display: none; }
+        .modal-content {
+            width: min(100%, 700px);
+            max-height: calc(100vh - 36px);
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 18px;
+            padding: clamp(22px, 4vw, 36px);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+        }
+        .modal-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            color: var(--blue-dark);
+            background: #eff6ff;
+            font-size: .75rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .modal-content h2 { margin: 12px 0 8px; color: var(--navy); font-size: clamp(1.5rem, 4vw, 2rem); }
+        .modal-content h3 { margin: 20px 0 7px; color: var(--navy); }
+        .modal-content p, .modal-content li { color: #475569; }
+        .modal-content ol, .modal-content ul { padding-left: 22px; }
+        .acknowledge {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+        .acknowledge input { width: 19px; height: 19px; flex: 0 0 auto; margin: 3px 0 0; }
+        .acknowledge label { margin: 0; font-weight: 600; }
+        #continueBtn { width: 100%; margin-top: 14px; background: var(--blue); color: #fff; }
+        #continueBtn:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+        body.modal-open { overflow: hidden; }
+        @media (max-width: 760px) {
+            body { padding: 22px 13px; }
+            .layout { grid-template-columns: 1fr; }
+            .container, #chart, .about-card { padding: 19px; }
+            #chart { border-left: 1px solid var(--line); }
+            .button-row { flex-direction: column; }
+            .button-row button { width: 100%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+        }
     </style>
 </head>
 <body>
+<!-- Welcome Modal -->
+<div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="modal-content">
+        <span class="modal-badge">Welcome</span>
+        <h2 id="welcomeTitle">Welcome to Bryant's Dose Strength Calculator</h2>
+        <p>
+            This calculator helps determine how much liquid is needed when changing
+            the concentration (strength) of a medication while keeping the total
+            amount of medication constant.
+        </p>
 
-<div class="container">
-    <h2>Dose Strength Calculator</h2>
+        <h3>How It Works</h3>
+        <ol>
+            <li><b>Original Strength</b> — Current medication concentration.</li>
+            <li><b>Original Liquid Amount</b> — Current liquid volume.</li>
+            <li><b>New Strength</b> — Desired concentration.</li>
+        </ol>
+        <p>
+            The calculator automatically determines the new liquid amount needed
+            to maintain the same total quantity of medication.
+        </p>
 
-    <label>Original Strength (mg or mL):</label>
-    <input type="number" id="origStrength" step="0.01">
+        <h3>Formula</h3>
+        <div class="formula">
+            New Liquid Amount = Original Liquid Amount × (Original Strength ÷ New Strength)
+        </div>
 
-    <label>Original Liquid Amount (L, mL, oz — any unit):</label>
-    <input type="number" id="origVolume" step="0.01">
+        <h3>Common Uses</h3>
+        <ul>
+            <li>Medication dilution calculations</li>
+            <li>Compounding and formulation adjustments</li>
+            <li>Research and laboratory preparations</li>
+            <li>Strength conversion calculations</li>
+            <li>Volume adjustment planning</li>
+        </ul>
 
-    <label>New Strength (mg or mL):</label>
-    <input type="number" id="newStrength" step="0.01">
+        <div class="safety-note">
+            <strong>Important:</strong><br>
+            This calculator is intended as a mathematical reference tool only.
+            Always verify medication concentrations and dosing instructions using
+            appropriate medical, veterinary, pharmaceutical, or laboratory guidelines.
+            Do not use its result as a substitute for professional dosing instructions.
+        </div>
 
-    <button onclick="calculate()">Calculate</button>
-    <button onclick="clearAll()" style="background:#c62828;color:white;">Clear All</button>
+        <div class="acknowledge">
+            <input type="checkbox" id="acknowledge">
+            <label for="acknowledge">
+                I understand this tool is for calculation reference purposes only.
+            </label>
+        </div>
 
-    <div id="result"></div>
+        <button id="continueBtn" type="button" disabled>Continue to Calculator</button>
+    </div>
 </div>
 
-<div id="chart">
-    <h3>Calculation Recap</h3>
-    <div id="chartEntries"></div>
-</div>
+<header class="page-header">
+    <p class="eyebrow">Calculation reference tool</p>
+    <h1>Bryant's Dose Strength Calculator</h1>
+    <p>Compare medication strengths and estimate the corresponding liquid volume using the same total quantity assumption.</p>
+</header>
+
+<main>
+    <div class="layout">
+        <section class="container" aria-labelledby="calculatorHeading">
+            <h2 id="calculatorHeading">Dose Strength Calculator</h2>
+            <p class="section-intro">Enter positive values for all three fields. Make sure strength values use the same units and concentration basis.</p>
+
+            <label for="origStrength">Original Strength (concentration)</label>
+            <input type="number" id="origStrength" step="any" min="0" inputmode="decimal" placeholder="e.g. 10">
+
+            <label for="origVolume">Original Liquid Amount (volume)</label>
+            <input type="number" id="origVolume" step="any" min="0" inputmode="decimal" placeholder="e.g. 5">
+
+            <label for="newStrength">New Strength (concentration)</label>
+            <input type="number" id="newStrength" step="any" min="0" inputmode="decimal" placeholder="e.g. 5">
+
+            <div class="button-row">
+                <button class="primary-btn" type="button" onclick="calculate()">Calculate</button>
+                <button class="secondary-btn" type="button" onclick="clearAll()">Clear All</button>
+            </div>
+            <div id="result" role="status" aria-live="polite"></div>
+        </section>
+
+        <aside id="chart" aria-labelledby="recapHeading">
+            <h3 id="recapHeading">Calculation Recap</h3>
+            <p class="history-intro">Your recent calculations appear here during this session.</p>
+            <div id="chartEntries"></div>
+        </aside>
+    </div>
+
+    <section class="about-card" aria-labelledby="aboutHeading">
+        <h3 id="aboutHeading">About This Calculator</h3>
+        <p>This tool applies an inverse-proportion formula to estimate a liquid volume that would keep the calculated total quantity constant when concentration changes.</p>
+        <div class="formula">New Liquid Amount = Original Liquid Amount × (Original Strength ÷ New Strength)</div>
+        <p><strong>For meaningful results:</strong> use matching units and comparable concentration values. The calculator does not verify a medication, validate a prescribed dose, or account for product-specific instructions.</p>
+        <div class="safety-note"><strong>Safety reminder:</strong> This is a mathematical reference tool, not medical advice. Do not change, dilute, compound, or administer medication based only on this result. Confirm all calculations with a qualified healthcare professional or pharmacist and follow the product's official instructions.</div>
+    </section>
+</main>
 
 <script>
+const welcomeModal = document.getElementById("welcomeModal");
+const acknowledgeCheckbox = document.getElementById("acknowledge");
+const continueButton = document.getElementById("continueBtn");
+const ACCEPTANCE_KEY = "bryantsDoseCalculatorAcknowledged";
+
+function closeModal() {
+    if (!acknowledgeCheckbox.checked) return;
+    try {
+        localStorage.setItem(ACCEPTANCE_KEY, "true");
+    } catch (error) {
+        // The calculator remains usable if browser storage is unavailable.
+    }
+    welcomeModal.hidden = true;
+    document.body.classList.remove("modal-open");
+    document.getElementById("origStrength").focus();
+}
+
+acknowledgeCheckbox.addEventListener("change", function () {
+    continueButton.disabled = !this.checked;
+});
+
+continueButton.addEventListener("click", closeModal);
+
+let acceptedBefore = false;
+try {
+    acceptedBefore = localStorage.getItem(ACCEPTANCE_KEY) === "true";
+} catch (error) {
+    acceptedBefore = false;
+}
+if (acceptedBefore) {
+    welcomeModal.hidden = true;
+} else {
+    document.body.classList.add("modal-open");
+    welcomeModal.hidden = false;
+}
+
 function calculate() {
     let D1 = parseFloat(document.getElementById("origStrength").value);
     let V1 = parseFloat(document.getElementById("origVolume").value);
@@ -114,13 +368,21 @@ function calculate() {
     // Add recap entry
     let entry = document.createElement("div");
     entry.className = "entry";
-    entry.innerHTML =
-        "<strong>Original Strength:</strong> " + D1 +
-        "<br><strong>Original Liquid:</strong> " + V1 +
-        "<br><strong>New Strength:</strong> " + D2 +
-        "<br><strong>New Liquid:</strong> " + formatted +
-        "<br><strong>Strength Change:</strong> " + strengthSymbol + " " + Math.abs(strengthChange).toFixed(2) + "%" +
-        "<br><strong>Liquid Change:</strong> " + liquidSymbol + " " + Math.abs(liquidChange).toFixed(2) + "%";
+    const recapLines = [
+        ["Original Strength:", D1],
+        ["Original Liquid:", V1],
+        ["New Strength:", D2],
+        ["New Liquid:", formatted],
+        ["Strength Change:", strengthSymbol + " " + Math.abs(strengthChange).toFixed(2) + "%"],
+        ["Liquid Change:", liquidSymbol + " " + Math.abs(liquidChange).toFixed(2) + "%"]
+    ];
+    recapLines.forEach(function (line, index) {
+        if (index > 0) entry.appendChild(document.createElement("br"));
+        const label = document.createElement("strong");
+        label.textContent = line[0] + " ";
+        entry.appendChild(label);
+        entry.appendChild(document.createTextNode(String(line[1])));
+    });
 
     document.getElementById("chartEntries").prepend(entry);
 }
